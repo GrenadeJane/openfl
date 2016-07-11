@@ -64,6 +64,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable implement
 	public var name (get, set):String;
 	public var opaqueBackground:Null <Int>;
 	public var parent (default, null):DisplayObjectContainer;
+	public var cached_parent (default, null):DisplayObjectContainer;
 	public var root (get, null):DisplayObject;
 	public var rotation (get, set):Float;
 	public var scale9Grid:Rectangle;
@@ -693,7 +694,9 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable implement
 			__updateFilters = filters != null && filters.length > 0;
 			__renderDirty = true;
 			__worldRenderDirty++;
-			
+			if (cached_parent != null)
+				cached_parent.__setRenderDirty();
+
 		}
 		
 	}

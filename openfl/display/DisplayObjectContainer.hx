@@ -51,7 +51,16 @@ class DisplayObjectContainer extends InteractiveObject {
 			
 			__children.push (child);
 			child.parent = this;
-			
+
+			if( this.cached_parent != null)
+			{
+				child.cached_parent = this.cached_parent;
+			}
+			else if (this.__cacheAsBitmap )
+			{
+				child.cached_parent = this;
+			}
+
 			if (stage != null) {
 				
 				// TODO: Dispatch ADDED_TO_STAGE after ADDED (but parent and stage must be set)
