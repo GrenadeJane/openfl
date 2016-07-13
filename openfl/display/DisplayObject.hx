@@ -243,10 +243,50 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable implement
 	public function localToGlobal (point:Point):Point {
 		
 		return __getWorldTransform ().transformPoint (point);
-		
+
 	}
-	
-	
+
+	private function getCached_parent (origin:DisplayObject) :DisplayObject {
+		if (origin.parent != null) {
+				if (origin.parent.cacheAsBitmap) {
+						return origin.parent;
+
+				} else {
+					return getCached_parent (origin.parent);
+
+				}
+		}
+		return null;
+
+	}
+
+	private function resetCached_parent (cachedParent:DisplayObject){
+		if (cachedParent != null) {
+				if (__children != null) {
+					for (child in __children) {
+						child.resetCached_parent (cachedParent);
+
+					}
+				} else {
+					cached_parent = cast ( cachedParent );
+
+			}
+		} else {
+
+			if (__children != null) {
+				for (child in __children) {
+					if (child.cacheAsBitmap) {
+						child.resetCached_parent (child);
+
+					} else {
+						child.resetCached_parent (null);
+
+					}
+				}
+			}
+		}
+	}
+
 	private function __broadcast (event:Event, notifyChilden:Bool):Bool {
 		
 		if (__eventMap != null && hasEventListener (event.type)) {
@@ -1037,8 +1077,17 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable implement
 	private function set_cacheAsBitmap (value:Bool):Bool {
 		
 		__setRenderDirty ();
-		return __cacheAsBitmap = __forceCacheAsBitmap ? true : value;
-		
+
+		if (value) {
+			resetCached_parent (this);
+
+		} else {
+			resetCached_parent (getCached_parent(this));
+
+		}
+		return 		__cacheAsBitmap = __forceCacheAsBitmap ? true : value;
+
+
 	}
 	
 	
