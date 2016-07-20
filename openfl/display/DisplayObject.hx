@@ -63,6 +63,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable implement
 	public var name (get, set):String;
 	public var opaqueBackground:Null <Int>;
 	public var parent (default, null):DisplayObjectContainer;
+	public var cachedParent (default, null):DisplayObjectContainer;
 	public var root (get, null):DisplayObject;
 	public var rotation (get, set):Float;
 	public var scale9Grid:Rectangle;
@@ -162,6 +163,9 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable implement
 		__worldVisible = true;
 		#end
 		
+
+		cachedParent = null;
+
 		name = "instance" + (++__instanceCount);
 		
 	}
@@ -244,6 +248,43 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable implement
 		
 		return __getWorldTransform ().transformPoint (point);
 		
+
+	}
+
+	private function resetCachedParent (currentParent:DisplayObject){
+		if (currentParent != null) {
+				if (__children != null) {
+					for (child in __children) {
+
+						child.resetCachedParent (currentParent);
+
+					}
+					cachedParent = cast ( currentParent );
+				} else {
+
+					cachedParent = cast ( currentParent );
+
+			}
+
+		} else {
+			if (__children != null) {
+				for (child in __children) {
+					if (child.cacheAsBitmap) {
+
+						child.resetCachedParent (child);
+
+					} else {
+
+						child.resetCachedParent (null);
+
+					}
+
+				}
+
+			}
+
+		}
+
 	}
 	
 	
@@ -715,6 +756,10 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable implement
 			__updateFilters = filters != null && filters.length > 0;
 			__renderDirty = true;
 			__worldRenderDirty++;
+			if (this.cachedParent != null) {
+				this.cachedParent.__setRenderDirty();
+
+			}
 			
 		}
 		
@@ -1076,10 +1121,22 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable implement
 	private function set_cacheAsBitmap (value:Bool):Bool {
 		
 		__setRenderDirty ();
-		return __cacheAsBitmap = __forceCacheAsBitmap ? true : value;
+		if (this.cachedParent == null) {
+		if (value) {
+
+				resetCachedParent (this);
+
+		} else {
+
+				resetCachedParent (this.cachedParent);
 		
 	}
 	
+	}
+	
+		return 		__cacheAsBitmap = __forceCacheAsBitmap ? true : value;
+
+	}
 	
 	private function get_cacheAsBitmapMatrix ():Matrix {
 		
