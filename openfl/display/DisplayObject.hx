@@ -739,7 +739,9 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable implement
 	private inline function __setTransformDirty ():Void {
 		
 		if (!__transformDirty) {
-			
+			if (__cachedParent != null) {
+				__cachedParent.__setRenderDirty();
+			}
 			__transformDirty = true;
 			__worldTransformDirty++;
 			
